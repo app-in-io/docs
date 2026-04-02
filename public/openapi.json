@@ -1,0 +1,445 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "App-in.io AI Search API",
+    "description": "Semantic search, content indexing, and conversational AI for your website.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "App-in.io",
+      "url": "https://app-in.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.app-in.io/v1",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "tags": [
+    { "name": "Search", "description": "Semantic search across collections" },
+    { "name": "Indexing", "description": "Index and delete content" }
+  ],
+  "paths": {
+    "/search/{collection}": {
+      "post": {
+        "operationId": "searchCollection",
+        "summary": "Search content",
+        "description": "AI-powered semantic search with natural language query parsing, automatic filters, sorting, suggestions, and clarifying questions.\n\n**How it works:**\n1. AI parses your query — extracts clean search terms, filters, and sort order\n2. Finds the most relevant results using semantic matching\n3. Falls back to broader language search if needed\n4. Drops irrelevant results below quality threshold\n5. Re-sorts by price or rating when detected in query\n6. Suggests alternatives if no results found\n7. Asks clarifying questions for ambiguous queries",
+        "tags": ["Search"],
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["products", "pages", "docs"]
+            },
+            "description": "Content collection to search"
+          },
+          {
+            "name": "X-Platform",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["product", "page", "doc", "woocommerce"]
+            },
+            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when indexing WooCommerce products."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SearchRequest" },
+              "examples": {
+                "simple": {
+                  "summary": "Simple product search",
+                  "value": {
+                    "query": "red shoes",
+                    "limit": 10
+                  }
+                },
+                "filtered": {
+                  "summary": "Search with category filter",
+                  "value": {
+                    "query": "running shoes under $100",
+                    "limit": 10,
+                    "category": "footwear",
+                    "lang": "en"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SearchResponse" }
+              }
+            },
+            "headers": {
+              "X-Plan": { "schema": { "type": "string" }, "description": "Current plan name" },
+              "X-Requests-Used": { "schema": { "type": "integer" } },
+              "X-Requests-Limit": { "schema": { "type": "integer" } },
+              "X-Requests-Remaining": { "schema": { "type": "integer" } },
+              "X-Tokens-Used": { "schema": { "type": "integer" } },
+              "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "Integer or 'unlimited' for BYOK" },
+              "X-Tokens-Remaining": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "502": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/index/{collection}": {
+      "post": {
+        "operationId": "indexContent",
+        "summary": "Index content",
+        "description": "Index a single document into the specified collection. Use `X-Platform: woocommerce` header for WooCommerce-specific fields.\n\nThe document is processed by AI and becomes searchable via semantic search.",
+        "tags": ["Indexing"],
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["products", "pages", "docs"]
+            }
+          },
+          {
+            "name": "X-Platform",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["product", "page", "doc", "woocommerce"]
+            },
+            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when indexing WooCommerce products."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/IndexProductRequest" },
+                  { "$ref": "#/components/schemas/IndexPageRequest" },
+                  { "$ref": "#/components/schemas/IndexDocRequest" }
+                ]
+              },
+              "examples": {
+                "product": {
+                  "summary": "Index a product",
+                  "value": {
+                    "id": "prod_001",
+                    "url": "/products/red-shoes",
+                    "title": "Red Running Shoes",
+                    "content": "Comfortable lightweight running shoes with air cushioning.",
+                    "price": 99.99,
+                    "compare_at_price": 129.99,
+                    "currency": "USD",
+                    "image_url": "https://example.com/shoes.jpg",
+                    "in_stock": true,
+                    "category": "footwear",
+                    "brand": "Nike",
+                    "sku": "NK-RS-001",
+                    "tags": ["running", "sale"],
+                    "rating": 4.5,
+                    "reviews_count": 42,
+                    "attributes": [
+                      { "name": "Size", "value": "42" },
+                      { "name": "Weight", "value": "300", "unit": "g" }
+                    ]
+                  }
+                },
+                "page": {
+                  "summary": "Index a page",
+                  "value": {
+                    "id": "page_about",
+                    "url": "/about",
+                    "title": "About Us",
+                    "content": "We are a company that sells shoes...",
+                    "lang": "en",
+                    "tags": ["company"]
+                  }
+                },
+                "woocommerce": {
+                  "summary": "WooCommerce product (X-Platform: woocommerce)",
+                  "value": {
+                    "id": "32",
+                    "url": "/product/t-shirt",
+                    "title": "T-Shirt",
+                    "content": "Cotton t-shirt in multiple colors.",
+                    "price": 18,
+                    "sku": "woo-tshirt",
+                    "on_sale": false,
+                    "product_type": "simple",
+                    "category": "Tshirts",
+                    "attributes": [{ "name": "color", "value": "Gray" }]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Content indexed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "indexed" },
+                    "id": { "type": "string", "example": "prod_001" },
+                    "collection": { "type": "string", "example": "products" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "502": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      },
+      "delete": {
+        "operationId": "deleteContent",
+        "summary": "Delete content",
+        "description": "Remove a single document from the specified collection by ID.",
+        "tags": ["Indexing"],
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["products", "pages", "docs"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": { "type": "string", "description": "Document ID to delete" }
+                }
+              },
+              "example": { "id": "prod_001" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Content deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "deleted" },
+                    "id": { "type": "string" },
+                    "collection": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key in `sk_live_*` format. Get yours from the dashboard at my.app-in.io."
+      }
+    },
+    "schemas": {
+      "SearchRequest": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": { "type": "string", "maxLength": 500, "description": "Search query in natural language" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 },
+          "lang": { "type": "string", "description": "ISO 639-1 language code", "example": "en" },
+          "category": { "type": "string", "description": "Filter by category" }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SearchResult" }
+          },
+          "parsed_query": { "type": "string", "description": "Cleaned query after LLM parsing" },
+          "parsed_filters": { "type": "object", "description": "Filters extracted from natural language" },
+          "sort_by": { "type": "string", "nullable": true, "description": "Extracted sort (price_asc, price_desc, rating_desc)" },
+          "suggestion": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "message": { "type": "string" },
+              "alternatives": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "clarifications": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "question": { "type": "string" },
+              "facets": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "score": { "type": "number" },
+          "payload": { "type": "object", "description": "Collection-specific fields (price, brand, image_url, etc.)" }
+        }
+      },
+      "IndexProductRequest": {
+        "type": "object",
+        "required": ["id", "url", "title", "content"],
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "price": { "type": "number" },
+          "compare_at_price": { "type": "number", "nullable": true },
+          "currency": { "type": "string", "example": "USD" },
+          "image_url": { "type": "string", "nullable": true },
+          "in_stock": { "type": "boolean" },
+          "category": { "type": "string", "nullable": true },
+          "brand": { "type": "string", "nullable": true },
+          "sku": { "type": "string", "nullable": true },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "rating": { "type": "number", "nullable": true },
+          "reviews_count": { "type": "integer", "nullable": true },
+          "attributes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Attribute" }
+          }
+        }
+      },
+      "IndexPageRequest": {
+        "type": "object",
+        "required": ["id", "url", "title", "content"],
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "lang": { "type": "string" },
+          "image_url": { "type": "string", "nullable": true },
+          "published_at": { "type": "string", "format": "date" },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "IndexDocRequest": {
+        "type": "object",
+        "required": ["id", "url", "title", "content"],
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "category": { "type": "string", "nullable": true },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "updated_at": { "type": "string", "format": "date" }
+        }
+      },
+      "Attribute": {
+        "type": "object",
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" },
+          "unit": { "type": "string", "nullable": true }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "errors": { "type": "object" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "message": "Invalid API key." }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "message": "The query field is required.",
+              "errors": { "query": ["The query field is required."] }
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "message": "Too many requests. Please try again later." }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Search service temporarily unavailable",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "message": "Search service temporarily unavailable." }
+          }
+        }
+      }
+    }
+  }
+}
