@@ -49,10 +49,6 @@ export default defineConfig({
       provider: 'local',
     },
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/app-in-io' },
-    ],
-
     footer: {
       message: 'AI-powered search for your website',
       copyright: '© 2026 App-in.io',
