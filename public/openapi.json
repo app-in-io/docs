@@ -108,7 +108,7 @@
       "post": {
         "operationId": "indexContent",
         "summary": "Index content",
-        "description": "Index a single document into the specified collection. Use `X-Platform: woocommerce` header for WooCommerce-specific fields.\n\nThe document is processed by AI and becomes searchable via semantic search.",
+        "description": "Index a single document into the specified collection. Returns `202 Accepted` — the document is queued for processing and becomes searchable shortly after.\n\nUse `X-Platform: woocommerce` header for WooCommerce-specific fields.",
         "tags": ["Indexing"],
         "parameters": [
           {
@@ -198,14 +198,14 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Content indexed",
+          "202": {
+            "description": "Content queued for indexing",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "indexed" },
+                    "status": { "type": "string", "example": "queued" },
                     "id": { "type": "string", "example": "prod_001" },
                     "collection": { "type": "string", "example": "products" }
                   }
@@ -214,9 +214,9 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "description": "Record limit reached or collection not allowed" },
           "422": { "$ref": "#/components/responses/ValidationError" },
-          "429": { "$ref": "#/components/responses/RateLimited" },
-          "502": { "$ref": "#/components/responses/ServiceUnavailable" }
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       },
       "delete": {
@@ -268,6 +268,91 @@
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/index/{collection}/batch": {
+      "post": {
+        "operationId": "indexContentBatch",
+        "summary": "Index content (batch)",
+        "description": "Index up to 20 documents in a single request. Returns `202 Accepted` — items are queued as one batch job.\n\nMax 2 concurrent index jobs per site. Use `X-Platform: woocommerce` header for WooCommerce-specific fields.",
+        "tags": ["Indexing"],
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["products", "pages", "docs"]
+            }
+          },
+          {
+            "name": "X-Platform",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["product", "page", "doc", "woocommerce"]
+            },
+            "description": "Platform type. Applies to all items in the batch."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IndexBatchRequest" },
+              "examples": {
+                "products": {
+                  "summary": "Batch index products",
+                  "value": {
+                    "items": [
+                      {
+                        "id": "prod_001",
+                        "url": "/products/red-shoes",
+                        "title": "Red Running Shoes",
+                        "content": "Comfortable lightweight running shoes.",
+                        "price": 99.99,
+                        "in_stock": true,
+                        "category": "footwear"
+                      },
+                      {
+                        "id": "prod_002",
+                        "url": "/products/blue-hat",
+                        "title": "Blue Baseball Hat",
+                        "content": "Classic cotton baseball hat.",
+                        "price": 24.99,
+                        "in_stock": true,
+                        "category": "accessories"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Batch queued for indexing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "queued" },
+                    "count": { "type": "integer", "example": 2 },
+                    "collection": { "type": "string", "example": "products" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "description": "Record limit reached or collection not allowed" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     }
@@ -381,6 +466,29 @@
           "category": { "type": "string", "nullable": true },
           "tags": { "type": "array", "items": { "type": "string" } },
           "updated_at": { "type": "string", "format": "date" }
+        }
+      },
+      "IndexBatchRequest": {
+        "type": "object",
+        "required": ["items"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "Array of documents to index. Each item follows the same schema as the single index endpoint.",
+            "items": {
+              "type": "object",
+              "required": ["id", "url", "title", "content"],
+              "properties": {
+                "id": { "type": "string" },
+                "url": { "type": "string" },
+                "title": { "type": "string" },
+                "content": { "type": "string" }
+              },
+              "additionalProperties": true
+            }
+          }
         }
       },
       "Attribute": {
