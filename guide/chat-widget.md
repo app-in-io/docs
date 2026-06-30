@@ -42,6 +42,8 @@ window.AppInChat = {
   position: 'bottom-right',     // bottom-right (default) | bottom-left
   theme: 'light',               // light (default) | dark
   lang: 'en',                   // language for greeting/welcome
+  autoOpen: 'once',             // never (default) | once (per session) | always (per page load)
+  autoOpenDelay: 5,             // seconds to wait after page load before auto-opening (default 5)
 };
 ```
 
@@ -58,6 +60,8 @@ window.AppInChat = {
   theme="dark"
   lang="et"
   price-prefix="€"
+  auto-open="once"
+  auto-open-delay="5"
 ></app-in-chat>
 ```
 
@@ -72,6 +76,8 @@ window.AppInChat = {
 | `theme` | `light` | `light` or `dark` |
 | `lang` | auto-detected | Language code (`en`, `de`, `uk`, `ru`, `et`, etc.) |
 | `price-prefix` | — | Currency symbol for product cards (`€`, `$`) |
+| `auto-open` | `never` | `never`, `once` (per session), or `always` (per page load) — auto-open the window after load |
+| `auto-open-delay` | `5` | Seconds to wait after page load before auto-opening (only when `auto-open` ≠ `never`) |
 
 ### CSS Variables
 
