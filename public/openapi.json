@@ -50,7 +50,7 @@
               "type": "string",
               "enum": ["product", "page", "doc", "woocommerce"]
             },
-            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when indexing WooCommerce products."
+            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when searching WooCommerce products."
           }
         ],
         "requestBody": {
@@ -71,7 +71,7 @@
                   "value": {
                     "query": "running shoes under $100",
                     "limit": 10,
-                    "category": "footwear",
+                    "category_id": 42,
                     "lang": "en"
                   }
                 }
@@ -89,15 +89,34 @@
             },
             "headers": {
               "X-Plan": { "schema": { "type": "string" }, "description": "Current plan name" },
+              "X-Rate-Limit": { "schema": { "type": "integer" }, "description": "Requests allowed per minute on the current plan. Always set." },
               "X-Requests-Used": { "schema": { "type": "integer" } },
               "X-Requests-Limit": { "schema": { "type": "integer" } },
               "X-Requests-Remaining": { "schema": { "type": "integer" } },
+              "X-Records-Used": { "schema": { "type": "integer" }, "description": "Total indexed records. Always set." },
+              "X-Records-Limit": { "schema": { "type": "string" }, "description": "Maximum indexed records, or 'unlimited'. Always set." },
+              "X-Records-Remaining": { "schema": { "type": "string" }, "description": "Indexed records remaining, or 'unlimited'. Always set." },
               "X-Tokens-Used": { "schema": { "type": "integer" } },
               "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "Integer or 'unlimited' for BYOK" },
-              "X-Tokens-Remaining": { "schema": { "type": "string" } }
+              "X-Tokens-Remaining": { "schema": { "type": "string" }, "description": "Tokens remaining this month. Only set when a token limit applies (not for BYOK)." }
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "Collection not available for your site type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string" },
+                    "collection": { "type": "string" }
+                  }
+                },
+                "example": { "error": "Collection not available for your site type.", "collection": "products" }
+              }
+            }
+          },
           "422": { "$ref": "#/components/responses/ValidationError" },
           "429": { "$ref": "#/components/responses/RateLimited" },
           "502": { "$ref": "#/components/responses/ServiceUnavailable" }
@@ -374,15 +393,22 @@
           "query": { "type": "string", "maxLength": 500, "description": "Search query in natural language" },
           "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 },
           "lang": { "type": "string", "description": "ISO 639-1 language code", "example": "en" },
-          "category": { "type": "string", "description": "Filter by category" }
+          "category_id": { "type": "integer", "minimum": 1, "description": "Filter by category ID" }
         }
       },
       "SearchResponse": {
         "type": "object",
         "properties": {
+          "query": { "type": "string", "description": "The original query, echoed back. Always present." },
+          "collection": { "type": "string", "example": "products", "description": "The collection that was searched. Always present." },
           "results": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/SearchResult" }
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/SearchResult" },
+                { "$ref": "#/components/schemas/ProductResult" }
+              ]
+            }
           },
           "parsed_query": { "type": "string", "description": "Cleaned query after LLM parsing" },
           "parsed_filters": { "type": "object", "description": "Filters extracted from natural language" },
@@ -407,14 +433,34 @@
       },
       "SearchResult": {
         "type": "object",
+        "description": "Base search result for pages and docs.",
         "properties": {
           "id": { "type": "string" },
           "url": { "type": "string" },
           "title": { "type": "string" },
-          "content": { "type": "string" },
-          "score": { "type": "number" },
-          "payload": { "type": "object", "description": "Collection-specific fields (price, brand, image_url, etc.)" }
+          "snippet": { "type": "string", "description": "Short text excerpt. Omitted when not available." },
+          "type": { "type": "string", "description": "Content type. Omitted when not available." }
         }
+      },
+      "ProductResult": {
+        "description": "Product search result. Extends the base result with product fields; each product field is omitted when not available.",
+        "allOf": [
+          { "$ref": "#/components/schemas/SearchResult" },
+          {
+            "type": "object",
+            "properties": {
+              "image_url": { "type": "string" },
+              "price": { "type": "number" },
+              "currency": { "type": "string", "example": "USD" },
+              "category": { "type": "string" },
+              "in_stock": { "type": "boolean" },
+              "sku": { "type": "string" },
+              "on_sale": { "type": "boolean" },
+              "product_type": { "type": "string" },
+              "rating": { "type": "number" }
+            }
+          }
+        ]
       },
       "IndexProductRequest": {
         "type": "object",
@@ -502,9 +548,17 @@
       },
       "ErrorResponse": {
         "type": "object",
+        "description": "Error body for authentication (401), authorization (403), and service (502) errors.",
+        "properties": {
+          "error": { "type": "string", "description": "Human-readable error message" }
+        }
+      },
+      "ValidationErrorResponse": {
+        "type": "object",
+        "description": "Validation error body (422).",
         "properties": {
           "message": { "type": "string" },
-          "errors": { "type": "object" }
+          "errors": { "type": "object", "description": "Map of field name to an array of error messages" }
         }
       }
     },
@@ -514,7 +568,7 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "message": "Invalid API key." }
+            "example": { "error": "Invalid API key." }
           }
         }
       },
@@ -522,7 +576,7 @@
         "description": "Validation error",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "schema": { "$ref": "#/components/schemas/ValidationErrorResponse" },
             "example": {
               "message": "The query field is required.",
               "errors": { "query": ["The query field is required."] }
@@ -534,7 +588,10 @@
         "description": "Rate limit exceeded",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "schema": {
+              "type": "object",
+              "properties": { "message": { "type": "string" } }
+            },
             "example": { "message": "Too many requests. Please try again later." }
           }
         }
@@ -544,7 +601,7 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "message": "Search service temporarily unavailable." }
+            "example": { "error": "Search service unavailable." }
           }
         }
       }
