@@ -416,17 +416,44 @@
           "suggestion": {
             "type": "object",
             "nullable": true,
+            "description": "Did-you-mean suggestion, returned when a query yields no results but relaxed alternatives exist.",
             "properties": {
               "message": { "type": "string" },
-              "alternatives": { "type": "array", "items": { "type": "string" } }
+              "alternatives": {
+                "type": "array",
+                "description": "Suggested alternative results as raw hits. Each item carries the base result fields plus a nested `payload` object with any extra indexed fields — note this differs from the flattened `results[]` items.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "url": { "type": "string" },
+                    "title": { "type": "string" },
+                    "snippet": { "type": "string" },
+                    "score": { "type": "number" },
+                    "type": { "type": "string" },
+                    "payload": { "type": "object" }
+                  }
+                }
+              }
             }
           },
           "clarifications": {
             "type": "object",
             "nullable": true,
+            "description": "Clarifying question with facets, returned when the query is ambiguous.",
             "properties": {
               "question": { "type": "string" },
-              "facets": { "type": "array", "items": { "type": "object" } }
+              "facets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": { "type": "string" },
+                    "label": { "type": "string" },
+                    "options": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
             }
           }
         }
