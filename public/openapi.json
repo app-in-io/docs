@@ -413,6 +413,7 @@
           "parsed_query": { "type": "string", "description": "Cleaned query after LLM parsing" },
           "parsed_filters": { "type": "object", "description": "Filters extracted from natural language" },
           "sort_by": { "type": "string", "nullable": true, "description": "Extracted sort (price_asc, price_desc, rating_desc)" },
+          "low_confidence": { "type": "boolean", "description": "True when no result cleared the relevance threshold and `results` contains best-effort closest matches instead (relaxed score floor, filters still applied). Treat an absent field as false." },
           "suggestion": {
             "type": "object",
             "nullable": true,
