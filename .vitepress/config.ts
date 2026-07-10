@@ -39,6 +39,8 @@ export default defineConfig({
         {
           text: 'Integration',
           items: [
+            { text: 'WooCommerce Plugin', link: '/guide/woocommerce-plugin' },
+            { text: 'Search Widget', link: '/guide/search-widget' },
             { text: 'Chat Widget', link: '/guide/chat-widget' },
           ],
         },
