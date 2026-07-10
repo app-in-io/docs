@@ -18,6 +18,8 @@ features:
     details: AI-powered search across products, pages, and documents with natural language query parsing and smart filters.
   - title: Easy Integration
     details: Simple REST API with API key authentication. Index content via a single POST request.
-  - title: WooCommerce Support
-    details: Built-in platform support for WooCommerce with dedicated product fields and validation.
+  - title: WooCommerce Plugin
+    details: No-code plugin that auto-syncs your catalog and adds an AI search widget plus an AI-powered results page to your store.
+    link: /guide/woocommerce-plugin
+    linkText: Set up the plugin
 ---
