@@ -374,6 +374,46 @@
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
+    },
+    "/index/counts": {
+      "get": {
+        "operationId": "indexCounts",
+        "summary": "Index counts & reconciliation",
+        "description": "Reconcile the site's record counts against the live search index and report them, along with how many index jobs are still in flight (`pending`, 0 = queue drained) and the last index-tracking status. Lets a client verify what actually landed in the index rather than trusting the `202 queued` responses. Secret key only; not counted against the request quota.",
+        "tags": ["Indexing"],
+        "responses": {
+          "200": {
+            "description": "Reconciled counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "pages": { "type": "integer" },
+                        "products": { "type": "integer" },
+                        "docs": { "type": "integer" }
+                      }
+                    },
+                    "total": { "type": "integer", "description": "Sum of all collection counts" },
+                    "pending": { "type": "integer", "description": "Index jobs still in flight (0 = queue fully processed)" },
+                    "reconciled": { "type": "boolean", "description": "true = counts are a live Qdrant read; false = embeddings unreachable, counts are last-known/stale" },
+                    "status": { "type": ["string", "null"], "enum": ["running", "completed", "failed", null], "description": "Last index-tracking status. Supplementary hint — the authoritative failure signal is pending==0 with products<total" },
+                    "last_indexed_at": { "type": ["string", "null"], "format": "date-time" },
+                    "error": { "type": ["string", "null"] }
+                  }
+                },
+                "example": { "counts": { "pages": 0, "products": 1234, "docs": 0 }, "total": 1234, "pending": 3, "reconciled": true, "status": "completed", "last_indexed_at": "2026-07-11T07:57:41+00:00", "error": null }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "description": "Secret key required (public keys rejected)" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
     }
   },
   "components": {
