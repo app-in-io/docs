@@ -4,3 +4,6 @@ node_modules
 *.log
 .DS_Store
 superpowers/
+
+# graphify knowledge graph — derived artifacts + LLM cache, rebuilt locally.
+graphify-out/
