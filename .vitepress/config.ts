@@ -10,6 +10,24 @@ export default defineConfig({
   lang: 'en-US',
   cleanUrls: true,
 
+  // VitePress treats every .md under the project root as a page, and it scans the
+  // working directory rather than the git index — so neither gitignoring a file
+  // nor "it's obviously not documentation" keeps it off the public site.
+  //
+  // `graphify-out/` holds dated GRAPH_REPORT.md backups whose prose contains text
+  // Vue's SFC compiler reads as unclosed HTML, which killed `npm run build`
+  // locally for anyone with the knowledge graph built (app-in-io/docs#10).
+  // Cloudflare Pages builds from a clean clone where the directory does not
+  // exist, which is why that one stayed invisible in production.
+  //
+  // `CLAUDE.md` is the opposite case (app-in-io/docs#12): it IS tracked, so it
+  // built to /CLAUDE and was live on docs.app-in.io — internal working rules and
+  // repo layout served from the product's documentation domain.
+  //
+  // Anything added to the repo root that is not meant for API consumers belongs
+  // in this list.
+  srcExclude: ['graphify-out/**', 'CLAUDE.md'],
+
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
   ],

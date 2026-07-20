@@ -55,5 +55,23 @@ With BYOK, `X-Tokens-Limit` returns `unlimited`.
 | Status | Meaning |
 |---|---|
 | `401` | Missing or invalid API key |
-| `403` | Site deactivated or account blocked |
+| `403` | Site paused (free trial ended), site deactivated, account blocked, collection not allowed for the site type, or — for a public key — an origin that is not on the site's allow-list |
 | `429` | Rate limit or monthly quota exceeded |
+
+::: warning A paused site is a persistent state, not a transient error
+When a free trial ends without a paid plan, the site is **paused**: search and
+indexing both return `403` until it is resumed. This is not something a retry
+will clear. Your integration should treat it as a distinct case and tell the
+store owner their trial has ended, rather than reporting a generic failure —
+the response body carries a message you can surface directly.
+
+Indexed content is kept for 90 days after a pause, so starting a paid plan
+within that window resumes everything without re-indexing.
+:::
+
+::: tip Usage headers are not sent on a `403`
+The `X-Plan`, `X-Rate-Limit`, `X-Requests-*`, `X-Records-*` and `X-Tokens-*`
+headers documented on successful responses are added by middleware that runs
+*after* authentication. A rejected request — including a paused site — carries
+none of them, so do not rely on reading a quota header to detect this state.
+:::
