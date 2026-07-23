@@ -88,16 +88,15 @@
               }
             },
             "headers": {
-              "X-Plan": { "schema": { "type": "string" }, "description": "Current plan name" },
-              "X-Rate-Limit": { "schema": { "type": "integer" }, "description": "Requests allowed per minute on the current plan. Set on every 2xx; absent on 4xx, which are rejected before the usage middleware runs." },
-              "X-Requests-Used": { "schema": { "type": "integer" } },
-              "X-Requests-Limit": { "schema": { "type": "integer" } },
+              "X-Plan": { "schema": { "type": "string" }, "description": "Plan the account is on." },
+              "X-Rate-Limit": { "schema": { "type": "integer" }, "description": "Requests allowed per minute for this site. Set on every 2xx; absent on 4xx, which are rejected before the usage middleware runs." },
+              "X-Requests-Used": { "schema": { "type": "integer" }, "description": "Requests used this month across every site on the account — requests are a shared allowance, not a per-site one." },
+              "X-Requests-Limit": { "schema": { "type": "integer" }, "description": "The account's monthly request allowance." },
               "X-Requests-Remaining": { "schema": { "type": "integer" } },
-              "X-Records-Used": { "schema": { "type": "integer" }, "description": "Total indexed records. Set on every 2xx; absent on 4xx." },
-              "X-Records-Limit": { "schema": { "type": "string" }, "description": "Maximum indexed records, or 'unlimited'. Set on every 2xx; absent on 4xx." },
-              "X-Records-Remaining": { "schema": { "type": "string" }, "description": "Indexed records remaining, or 'unlimited'. Set on every 2xx; absent on 4xx." },
-              "X-Tokens-Used": { "schema": { "type": "integer" } },
-              "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "Integer or 'unlimited' for BYOK" },
+              "X-Records-Used": { "schema": { "type": "integer" }, "description": "Total indexed records for this site. Set on every 2xx; absent on 4xx." },
+              "X-Records-Limit": { "schema": { "type": "string" }, "description": "Always 'unlimited' — there is no record cap. Set on every 2xx; absent on 4xx." },
+              "X-Tokens-Used": { "schema": { "type": "integer" }, "description": "Tokens used this month across every site on the account — tokens are a shared allowance, not a per-site one." },
+              "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "The account's monthly token allowance: an integer, or 'unlimited' for BYOK" },
               "X-Tokens-Remaining": { "schema": { "type": "string" }, "description": "Tokens remaining this month. Only set when a token limit applies (not for BYOK)." }
             }
           },
@@ -242,7 +241,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Record limit reached, collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
+          "403": { "description": "Collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
           "422": { "$ref": "#/components/responses/ValidationError" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
@@ -379,7 +378,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Record limit reached, collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
+          "403": { "description": "Collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
           "422": { "$ref": "#/components/responses/ValidationError" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
