@@ -470,7 +470,17 @@
             "nullable": true,
             "description": "Did-you-mean suggestion, returned when a query yields no results but relaxed alternatives exist.",
             "properties": {
-              "message": { "type": "string" },
+              "message": { "type": "string", "nullable": true, "description": "Written by the AI in the language of the query. Null when that call failed — the API does not substitute an English sentence, because it cannot know the visitor's language. Render your own message from `cheapest` in that case." },
+              "cheapest": {
+                "type": "object",
+                "nullable": true,
+                "description": "The lowest-priced alternative, sent only alongside a null `message` so you can phrase the suggestion yourself.",
+                "properties": {
+                  "title": { "type": "string", "nullable": true },
+                  "price": { "nullable": true, "oneOf": [{ "type": "number" }, { "type": "string" }], "description": "Echoed from the indexed payload, so its type is whatever you indexed — stores that push prices as strings get a string back." },
+                  "currency": { "type": "string", "nullable": true, "description": "ISO 4217 code from the indexed payload, when present. Absent if the store does not index one." }
+                }
+              },
               "alternatives": {
                 "type": "array",
                 "description": "Suggested alternative results as raw hits. Each item carries the base result fields plus a nested `payload` object with any extra indexed fields — note this differs from the flattened `results[]` items.",
@@ -492,9 +502,9 @@
           "clarifications": {
             "type": "object",
             "nullable": true,
-            "description": "Clarifying question with facets, returned when the query is ambiguous.",
+            "description": "Clarifying question with facets, returned when the query is ambiguous. `question` and every facet `label` come back in the language of the query; `field` and `options` stay as indexed.",
             "properties": {
-              "question": { "type": "string" },
+              "question": { "type": "string", "nullable": true, "description": "Null when the AI returned facets but no question. Supply your own prompt rather than expecting an English default." },
               "facets": {
                 "type": "array",
                 "items": {
