@@ -25,9 +25,20 @@ Limits depend on your plan:
 | | Free | Pro | Enterprise |
 |---|---|---|---|
 | Requests/month | 200 | 100,000 | Unlimited |
-| Records total | 50 | 50,000 | Unlimited |
 | Tokens/month | 100,000 | 10,000,000 | Unlimited |
-| Rate/minute | 10 | 180 | 480 |
+| Sites per account | 1 | 3 | Unlimited |
+| Rate/minute | 60 | 180 | 480 |
+
+**There is no cap on how much you index.** How large your catalogue is has
+nothing to do with how much you use the API, so nothing limits your record
+count. What bounds usage is the monthly request allowance and the per-minute
+rate.
+
+::: tip Requests and tokens are shared across your sites
+The monthly request and token allowances belong to your **account**, not to
+each site — two stores on one account draw from one pool. The per-minute rate
+is the exception: it is a burst limit applied per site.
+:::
 
 ## Response headers
 
@@ -41,8 +52,27 @@ X-Requests-Remaining: 158
 X-Tokens-Used: 45230
 X-Tokens-Limit: 100000
 X-Tokens-Remaining: 54770
-X-Rate-Limit: 10
+X-Rate-Limit: 60
+X-Quota-Reset: 2026-08-20T09:14:00+00:00
+X-Request-Id: 019856f2-...
 ```
+
+**`X-Quota-Reset`** is when your counters go back to zero. It is **not the 1st
+of the month** — the window is one month long, anchored on your account, so
+every account has its own reset date. Read it rather than assuming a calendar
+month.
+
+**`X-Request-Id`** identifies the request in our logs. Quote it in a support
+request and we can find the call, what it searched and what came back.
+
+### What a request costs
+
+Search counts as 1, chat as 1, autocomplete as 0.1. **Indexing and deleting are
+free** — they count 0 against the monthly allowance, though they are still
+subject to the per-minute rate.
+
+A failed request costs nothing: anything returning 400 or above is recorded but
+charged at 0, so retrying while blocked does not dig the hole deeper.
 
 ## BYOK (Bring Your Own Key)
 
@@ -55,18 +85,23 @@ With BYOK, `X-Tokens-Limit` returns `unlimited`.
 | Status | Meaning |
 |---|---|
 | `401` | Missing or invalid API key |
-| `403` | Site paused (free trial ended), site deactivated, account blocked, collection not allowed for the site type, or — for a public key — an origin that is not on the site's allow-list |
+| `403` | Site paused (beyond your plan's site limit), site deactivated, account blocked, collection not allowed for the site type, or — for a public key — an origin that is not on the site's allow-list |
 | `429` | Rate limit or monthly quota exceeded |
 
 ::: warning A paused site is a persistent state, not a transient error
-When a free trial ends without a paid plan, the site is **paused**: search and
-indexing both return `403` until it is resumed. This is not something a retry
-will clear. Your integration should treat it as a distinct case and tell the
-store owner their trial has ended, rather than reporting a generic failure —
-the response body carries a message you can surface directly.
+A site is **paused** when it is beyond the number of sites your plan allows —
+for example after a downgrade, where the newest sites over the limit are parked
+and the oldest keep running. Search and indexing both return `403` until it is
+resumed. This is not something a retry will clear. Your integration should treat
+it as a distinct case and tell the store owner why, rather than reporting a
+generic failure — the response body carries a message you can surface directly.
 
-Indexed content is kept for 90 days after a pause, so starting a paid plan
-within that window resumes everything without re-indexing.
+**Nothing is deleted.** A paused site keeps its indexed content indefinitely;
+raising your plan (or removing another site) unpauses it and everything is there,
+with no re-indexing.
+
+A trial ending is a *different* thing and does not pause anything — the account
+simply moves to the Free plan, with a smaller monthly allowance.
 :::
 
 ::: tip Usage headers are not sent on a `403`
