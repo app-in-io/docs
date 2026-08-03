@@ -88,22 +88,23 @@
               }
             },
             "headers": {
-              "X-Plan": { "schema": { "type": "string" }, "description": "Current plan name" },
-              "X-Rate-Limit": { "schema": { "type": "integer" }, "description": "Requests allowed per minute on the current plan. Set on every 2xx; absent on 4xx, which are rejected before the usage middleware runs." },
-              "X-Requests-Used": { "schema": { "type": "integer" } },
-              "X-Requests-Limit": { "schema": { "type": "integer" } },
+              "X-Plan": { "schema": { "type": "string" }, "description": "Plan the account is on." },
+              "X-Rate-Limit": { "schema": { "type": "integer" }, "description": "Requests allowed per minute for this site. Set on every 2xx; absent on 4xx, which are rejected before the usage middleware runs." },
+              "X-Requests-Used": { "schema": { "type": "integer" }, "description": "Requests used this month across every site on the account — requests are a shared allowance, not a per-site one." },
+              "X-Requests-Limit": { "schema": { "type": "integer" }, "description": "The account's monthly request allowance." },
               "X-Requests-Remaining": { "schema": { "type": "integer" } },
-              "X-Records-Used": { "schema": { "type": "integer" }, "description": "Total indexed records. Set on every 2xx; absent on 4xx." },
-              "X-Records-Limit": { "schema": { "type": "string" }, "description": "Maximum indexed records, or 'unlimited'. Set on every 2xx; absent on 4xx." },
-              "X-Records-Remaining": { "schema": { "type": "string" }, "description": "Indexed records remaining, or 'unlimited'. Set on every 2xx; absent on 4xx." },
-              "X-Tokens-Used": { "schema": { "type": "integer" } },
-              "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "Integer or 'unlimited' for BYOK" },
-              "X-Tokens-Remaining": { "schema": { "type": "string" }, "description": "Tokens remaining this month. Only set when a token limit applies (not for BYOK)." }
+              "X-Records-Used": { "schema": { "type": "integer" }, "description": "Total indexed records for this site. Set on every 2xx; absent on 4xx." },
+              "X-Records-Limit": { "schema": { "type": "string" }, "description": "Always 'unlimited' — there is no record cap. Set on every 2xx; absent on 4xx." },
+              "X-Tokens-Used": { "schema": { "type": "integer" }, "description": "Tokens used this month across every site on the account — tokens are a shared allowance, not a per-site one." },
+              "X-Tokens-Limit": { "schema": { "type": "string" }, "description": "The account's monthly token allowance: an integer, or 'unlimited' for BYOK" },
+              "X-Tokens-Remaining": { "schema": { "type": "string" }, "description": "Tokens remaining this month. Only set when a token limit applies (not for BYOK)." },
+              "X-Quota-Reset": { "schema": { "type": "string", "format": "date-time" }, "description": "When the monthly counters reset. NOT the 1st of the month — the window is one month long, anchored on the account, so every account has its own date. Read it rather than assuming a calendar month." },
+              "X-Request-Id": { "schema": { "type": "string" }, "description": "Identifies this request in our logs. Quote it in a support request." }
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": {
-            "description": "Collection not available for your site type, or the site is paused. A site is paused when its free trial ended without a paid plan — search and indexing both stop, while the indexed content is kept for 90 days. Also returned when the site has been deactivated, the account blocked, or — for a public key — the request Origin is not on the site's allow-list. Note that the usage headers listed on the 200 response are added by middleware that runs after authentication, so none of them are present on a 403.",
+            "description": "Collection not available for your site type, or the site is paused. A site is paused when it is beyond the number of sites your plan allows — for example after a downgrade, where the newest sites over the limit are parked and the oldest keep running. Nothing is deleted: raising the plan or removing another site unpauses it with its index intact. A trial ending does not pause anything; the account simply moves to Free. Also returned when the site has been deactivated, the account blocked, or — for a public key — the request Origin is not on the site's allow-list. Note that the usage headers listed on the 200 response are added by middleware that runs after authentication, so none of them are present on a 403.",
             "content": {
               "application/json": {
                 "schema": {
@@ -242,7 +243,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Record limit reached, collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
+          "403": { "description": "Collection not allowed, or the site is paused (the site is beyond the number of sites the plan allows — nothing is deleted, raising the plan unpauses it)" },
           "422": { "$ref": "#/components/responses/ValidationError" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
@@ -295,7 +296,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Site is paused (free trial ended without a paid plan), deactivated, the account is blocked, a secret key is required, or the collection is not allowed for this site type" },
+          "403": { "description": "Site is paused (beyond the number of sites the plan allows), deactivated, the account is blocked, a secret key is required, or the collection is not allowed for this site type" },
           "422": { "$ref": "#/components/responses/ValidationError" }
         }
       }
@@ -379,7 +380,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Record limit reached, collection not allowed, or the site is paused (free trial ended without a paid plan — indexing and search stop, indexed content kept 90 days)" },
+          "403": { "description": "Collection not allowed, or the site is paused (the site is beyond the number of sites the plan allows — nothing is deleted, raising the plan unpauses it)" },
           "422": { "$ref": "#/components/responses/ValidationError" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
@@ -420,7 +421,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "description": "Secret key required (public keys rejected), or the site is paused (free trial ended without a paid plan)" },
+          "403": { "description": "Secret key required (public keys rejected), or the site is paused (beyond the number of sites the plan allows)" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
