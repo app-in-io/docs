@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+  # No `labels:` on purpose — this repo has no `dependencies` / `javascript` labels, and
+  # Dependabot ignores listed labels that do not exist. Its defaults are the same pair,
+  # and it creates them automatically.
+  # No `github-actions` entry — this repo has no workflows (Cloudflare Pages builds it).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10

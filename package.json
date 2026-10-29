@@ -12,6 +12,6 @@
     "vitepress": "^1.6.4"
   },
   "dependencies": {
-    "vitepress-openapi": "^0.1.19"
+    "vitepress-openapi": "^0.2.5"
   }
 }
