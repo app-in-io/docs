@@ -547,7 +547,8 @@
               "sku": { "type": "string" },
               "on_sale": { "type": "boolean" },
               "product_type": { "type": "string" },
-              "rating": { "type": "number" }
+              "rating": { "type": "number" },
+              "handle": { "type": "string", "example": "red-boot", "description": "Shopify only: the primary product handle (the URL slug in the store's main language). Present only for requests with `X-Platform: shopify`, and only when the index holds a handle for the product. A product indexed before the handle was stored gets it on the next full sync." }
             }
           }
         ]
