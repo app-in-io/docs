@@ -2,8 +2,8 @@
 
 Add an instant AI search modal to any website with a single script tag. The search widget is a Web Component (`<semantic-search>`) that runs in Shadow DOM — no CSS conflicts with your site. It attaches to your existing search input and returns semantic, typo-tolerant results as the user types.
 
-::: tip Using WooCommerce?
-The [WooCommerce plugin](/guide/woocommerce-plugin) embeds and configures this widget for you automatically. Use this page for custom (non-WooCommerce) integrations or advanced configuration.
+::: tip Using WooCommerce or Shopify?
+The [WooCommerce plugin](/guide/woocommerce-plugin) and the [Shopify app](/guide/shopify-app) embed and configure this widget for you. Use this page for custom integrations or advanced configuration.
 :::
 
 ## Installation
@@ -43,6 +43,8 @@ window.AppInSearch = {
   apiUrl: 'https://api.app-in.io/v1', // API base URL (default shown)
   platform: 'woocommerce',      // backend platform → X-Platform header (default: none)
   categoryId: '42',             // scope results to a category (sent as category_id)
+  collectionId: '450123456789', // Shopify: show this collection first (sent as collection_id)
+  country: 'CH',                // Shopify: shopper country for market prices (sent as country)
   placeholder: 'Search products…', // input placeholder (default: localized)
   showAllUrl: '/search?q={query}', // "Show all results" link; {query} is replaced
   inputSelector: '.my-search',  // CSS selector of your search input(s)
@@ -73,8 +75,10 @@ window.AppInSearch = {
 |---|---|---|---|
 | `api-key` | `apiKey` | — | **Required.** Public key (`pk_live_...`) |
 | `api-url` | `apiUrl` | `https://api.app-in.io/v1` | API base URL |
-| `platform` | `platform` | — | Backend platform, sent as the `X-Platform` header (e.g. `woocommerce`) |
+| `platform` | `platform` | — | Backend platform, sent as the `X-Platform` header (`woocommerce` or `shopify`) |
 | `category-id` | `categoryId` | — | Scope results to a category (sent as numeric `category_id`) |
+| `collection-id` | `collectionId` | — | Shopify only. The numeric ID of a Shopify collection, sent as `collection_id`. Products from this collection come first. |
+| `country` | `country` | — | Shopify only. The shopper country as a two-letter code (for example `CH`), sent as `country`. The results then show the prices of that country. See [Shopify market prices](#shopify-market-prices). |
 | `placeholder` | `placeholder` | localized | Search input placeholder; falls back to a `lang`-localized default |
 | `show-all-url` | `showAllUrl` | `/?s={query}` | "Show all results" link; `{query}` is replaced with the URL-encoded input |
 | `input-selector` | `inputSelector` | — | CSS selector of the search input(s) to attach to (added to the built-in defaults) |
@@ -84,7 +88,19 @@ window.AppInSearch = {
 
 ::: tip Input detection
 The widget attaches to common search inputs automatically. If your theme uses a custom field, pass its `input-selector` — it's added to the built-in selectors, not replacing them.
+
+The widget ignores an `input-selector` that is not a valid CSS selector. It writes one warning to the browser console and keeps the built-in selectors.
 :::
+
+### Shopify storefronts
+
+Set `platform="shopify"` on a Shopify storefront. The widget then also finds the search fields of Shopify themes. It also finds a search field that the theme adds after the page loads. When the shopper clicks the theme's search field, the widget closes the theme's own search panel and opens its modal.
+
+### Shopify market prices
+
+A Shopify store can sell in several countries, each with its own prices and currency. Set `country` to the shopper's country. The API then returns the price, the currency and the stock of that country, and removes each product that the store does not sell there.
+
+Sometimes the API cannot read the market prices. It then returns the store's base prices and `market.localized: false`. In that case the widget shows the base prices first. Then it asks the store's own Storefront API for the market prices, from the shopper's browser. When this works, the cards change to the market prices. When it fails, the base prices stay, and no product is removed.
 
 ## Theming
 
@@ -141,6 +157,6 @@ Set `lang` to render the widget's UI strings (placeholder, "Show all results", s
 
 ## Requirements
 
-- A site with indexed **products** ([Quick Start](/guide/quick-start) or the [WooCommerce plugin](/guide/woocommerce-plugin))
+- A site with indexed **products** ([Quick Start](/guide/quick-start), the [WooCommerce plugin](/guide/woocommerce-plugin) or the [Shopify app](/guide/shopify-app))
 - A **public** key (`pk_live_...`) from the dashboard
 - Your website domain must match the domain configured for the site in the dashboard

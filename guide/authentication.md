@@ -34,6 +34,12 @@ nothing to do with how much you use the API, so nothing limits your record
 count. What bounds usage is the monthly request allowance and the per-minute
 rate.
 
+**Indexing does not use your monthly allowances.** Only search (autocomplete
+included) and chat count toward the request and token allowances. Index and
+delete calls count as zero requests. The AI tokens that indexing uses are
+logged, but they do not count toward the token allowance. A large catalogue
+therefore never blocks your searches.
+
 ::: tip Requests and tokens are shared across your sites
 The monthly request and token allowances belong to your **account**, not to
 each site — two stores on one account draw from one pool. The per-minute rate
