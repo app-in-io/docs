@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { useSidebar } from 'vitepress-openapi'
+import llmstxt from 'vitepress-plugin-llms'
 import spec from '../public/openapi.json'
 
 const openApiSidebar = useSidebar({ spec, linkPrefix: '/operations/' })
@@ -9,6 +10,25 @@ export default defineConfig({
   description: 'API Reference & Integration Guides for App-in.io AI Search',
   lang: 'en-US',
   cleanUrls: true,
+
+  // Built-in since VitePress 1.x: writes dist/sitemap.xml with every page,
+  // dynamic routes (operations/*) included. robots.txt points crawlers here.
+  sitemap: {
+    hostname: 'https://docs.app-in.io',
+  },
+
+  // vitepress-plugin-llms writes dist/llms.txt, dist/llms-full.txt and a .md
+  // copy of every page for AI agents. Operation pages render through a Vue
+  // component, so their LLM text comes from operations/[operationId].paths.ts.
+  vite: {
+    plugins: [
+      llmstxt({
+        domain: 'https://docs.app-in.io',
+        details:
+          'The full machine-readable API contract (OpenAPI 3) is at https://docs.app-in.io/openapi.json.',
+      }),
+    ],
+  },
 
   // VitePress treats every .md under the project root as a page, and it scans the
   // working directory rather than the git index — so neither gitignoring a file
