@@ -13,14 +13,16 @@ App-in.io adds AI-powered semantic search to your website. Instead of keyword ma
 - **AI query parsing** — extracts filters and sort from natural language ("red shoes under $100")
 - **Multi-language** — automatic language detection and fallback
 - **WooCommerce support** — built-in platform with dedicated fields, plus a [no-code plugin](/guide/woocommerce-plugin)
+- **Shopify support** — built-in platform with collections and prices per country, plus a [no-code app](/guide/shopify-app)
 
-::: tip Running a WooCommerce store?
-Skip the API — the [WooCommerce plugin](/guide/woocommerce-plugin) syncs your catalog and adds AI search to your storefront with no code.
+::: tip Running a WooCommerce or Shopify store?
+Skip the API. The [WooCommerce plugin](/guide/woocommerce-plugin) and the [Shopify app](/guide/shopify-app) sync your catalog and add AI search to your storefront with no code.
 :::
 
 ## Next steps
 
 - [WooCommerce Plugin](/guide/woocommerce-plugin) — no-code setup for WooCommerce stores
+- [Shopify App](/guide/shopify-app) — no-code setup for Shopify stores
 - [Search Widget](/guide/search-widget) — embed the `<semantic-search>` widget on any site
 - [Quick Start](/guide/quick-start) — get searching in 5 minutes
 - [Authentication](/guide/authentication) — API keys and security

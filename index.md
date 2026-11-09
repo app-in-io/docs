@@ -22,4 +22,8 @@ features:
     details: No-code plugin that auto-syncs your catalog and adds an AI search widget plus an AI-powered results page to your store.
     link: /guide/woocommerce-plugin
     linkText: Set up the plugin
+  - title: Shopify App
+    details: No-code app that syncs your catalog in every store language and adds AI search with prices per country to your storefront.
+    link: /guide/shopify-app
+    linkText: Set up the app
 ---

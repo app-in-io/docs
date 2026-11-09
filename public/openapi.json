@@ -48,9 +48,9 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["product", "page", "doc", "woocommerce"]
+              "enum": ["product", "page", "doc", "woocommerce", "shopify"]
             },
-            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when searching WooCommerce products."
+            "description": "Platform type. Defaults automatically based on collection. Set to `woocommerce` when searching WooCommerce products. Set to `shopify` when searching Shopify products."
           }
         ],
         "requestBody": {
@@ -444,7 +444,9 @@
           "query": { "type": "string", "maxLength": 500, "description": "Search query in natural language" },
           "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 10 },
           "lang": { "type": "string", "description": "ISO 639-1 language code", "example": "en" },
-          "category_id": { "type": "integer", "minimum": 1, "description": "Filter by category ID" }
+          "category_id": { "type": "integer", "minimum": 1, "description": "Filter by category ID" },
+          "collection_id": { "type": "string", "pattern": "^\\d{1,20}$", "example": "450123456789", "description": "Shopify only (`X-Platform: shopify`): the numeric ID of a Shopify collection. Send it as a string, because a Shopify ID can be larger than the largest safe JavaScript integer. The search returns products from this collection first. When the collection gives fewer than 3 results, the search adds products from the whole store, up to `limit`." },
+          "country": { "type": "string", "pattern": "^[A-Za-z]{2}$", "example": "CH", "description": "Shopify only (`X-Platform: shopify`): the shopper country, as an ISO 3166-1 alpha-2 code. Upper case and lower case are both accepted. The country is not a filter. When you send it, the response contains `market`. When `market.localized` is true, the results show the price, the currency and the stock of the store's market for this country. The search also removes each product that this market does not sell." }
         }
       },
       "SearchResponse": {
@@ -466,6 +468,15 @@
           "sort_by": { "type": "string", "nullable": true, "description": "Extracted sort (price_asc, price_desc, rating_desc)" },
           "low_confidence": { "type": "boolean", "description": "True when no result cleared the relevance threshold and `results` contains best-effort closest matches instead (relaxed score floor, filters still applied). Treat an absent field as false." },
           "corrected_query": { "type": "string", "nullable": true, "description": "Typo-corrected query that produced the results when the original found nothing and the corrected retry succeeded (e.g. \"hyration pak\" -> \"hydration pack\"). Null or absent when no correction fired." },
+          "market": {
+            "type": "object",
+            "description": "Shopify only (`X-Platform: shopify`): the shopper market. Present only when the request sent `country`.",
+            "required": ["country", "localized"],
+            "properties": {
+              "country": { "type": "string", "example": "CH", "description": "The `country` from the request, in upper case." },
+              "localized": { "type": "boolean", "description": "True when the API read the market prices. Each result then has the market values in `price`, `currency` and `in_stock`. A product that the market does not sell is not in `results`. The order of the other results does not change. False when the API could not read the market prices. The results then show the store's base prices, and no product is removed." }
+            }
+          },
           "suggestion": {
             "type": "object",
             "nullable": true,
