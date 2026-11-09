@@ -13,6 +13,6 @@
     "vitepress-plugin-llms": "^1.14.0"
   },
   "dependencies": {
-    "vitepress-openapi": "^0.2.5"
+    "vitepress-openapi": "^0.2.8"
   }
 }
