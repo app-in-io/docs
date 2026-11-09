@@ -20,14 +20,16 @@ export default defineConfig({
   // vitepress-plugin-llms writes dist/llms.txt, dist/llms-full.txt and a .md
   // copy of every page for AI agents. Operation pages render through a Vue
   // component, so their LLM text comes from operations/[operationId].paths.ts.
+  //
+  // `apply: 'build'` keeps the plugin out of `vitepress dev`. Its dev-server
+  // middleware reads `outDir + req.url` for any .md/.txt request with no `..`
+  // check, so `/../../CLAUDE.md` returned files outside the build output.
   vite: {
-    plugins: [
-      llmstxt({
-        domain: 'https://docs.app-in.io',
-        details:
-          'The full machine-readable API contract (OpenAPI 3) is at https://docs.app-in.io/openapi.json.',
-      }),
-    ],
+    plugins: llmstxt({
+      domain: 'https://docs.app-in.io',
+      details:
+        'The full machine-readable API contract (OpenAPI 3) is at https://docs.app-in.io/openapi.json.',
+    }).map((plugin) => ({ ...plugin, apply: 'build' as const })),
   },
 
   // VitePress treats every .md under the project root as a page, and it scans the
