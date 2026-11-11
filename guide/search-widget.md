@@ -82,7 +82,7 @@ window.AppInSearch = {
 | `placeholder` | `placeholder` | localized | Search input placeholder; falls back to a `lang`-localized default |
 | `show-all-url` | `showAllUrl` | `/?s={query}` | "Show all results" link; `{query}` is replaced with the URL-encoded input |
 | `input-selector` | `inputSelector` | — | CSS selector of the search input(s) to attach to (added to the built-in defaults) |
-| `lang` | `lang` | auto-detected | UI language (`en`, `de`, `fr`, `es`, `it`, `nl`, `pl`, `cs`, `uk`, `ru`, `et`, `pt`) |
+| `lang` | `lang` | auto-detected (UI only) | UI language (`en`, `de`, `fr`, `es`, `it`, `nl`, `pl`, `cs`, `uk`, `ru`, `et`, `pt`). When set, it is also sent as the search language. Set it to the language of the page and its products. See [Language](#language) |
 | `theme` | `theme` | `light` | `light` or `dark` |
 | `limit` | `limit` | `6` | Maximum results shown in the dropdown |
 
@@ -140,7 +140,14 @@ Useful for a custom trigger button:
 
 ## Language
 
-Set `lang` to render the widget's UI strings (placeholder, "Show all results", status and error messages) in that language. AI-generated text (suggestions, clarifications) is localized by the API. If `lang` is omitted, the widget auto-detects from the browser.
+`lang` does two things:
+
+- **UI language.** The widget shows its UI strings (placeholder, "Show all results", status and error messages) in that language. AI-generated text (suggestions, clarifications) is localized by the API.
+- **Search language.** The widget sends `lang` with every search request. The API then shows only products in that language. When fewer than 3 products match, it searches again without the language filter. When your catalog has products in that language, the AI query parsing (when it is on for the site) also translates the query into it. Otherwise it uses the most common language of your catalog.
+
+So set `lang` to the language of the page and its products, not only to the language of the interface. On a multilingual store, set it per page to the language the visitor is browsing in.
+
+If `lang` is omitted, the widget picks its UI language from the browser and sends no search language. The search then covers every language of the catalog.
 
 ```html
 <semantic-search api-key="pk_live_..." lang="de"></semantic-search>
