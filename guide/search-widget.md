@@ -29,8 +29,9 @@ window.AppInSearch = {
 Use your **public** key (`pk_live_...`) — it's safe to expose in the browser. Find it in the [dashboard](https://my.app-in.io) under **Site → API Keys**.
 
 ::: tip Which option to choose?
-**JS Config** — easier to manage, exposes programmatic control (`open()`, `close()`).
+**JS Config** — easier to manage, also exposes `window.AppInSearch.open()` / `close()`.
 **HTML Tag** — declarative, good for static HTML or a CMS template.
+Both options support the [AI search button](#ai-search-button) and the [`appin-search:open` event](#open-from-your-code).
 :::
 
 ## Configuration
@@ -123,19 +124,55 @@ semantic-search {
 The widget honors an **explicit** `theme` only — it does not sniff the OS/browser theme, because "which theme this store wants" is the integrator's decision. The WooCommerce plugin's **Auto** appearance mode implements this by measuring the page background and setting `theme` for you.
 :::
 
+## AI search button
+
+`search.js` also defines `<semantic-search-button>`: a ready-made button with a sparkle icon and the words "AI search" in the visitor's language. A click opens the search modal. Place it where you want it, for example inside the right end of your search field:
+
+```html
+<form class="site-search" style="position: relative">
+  <input type="search" placeholder="What are you looking for?">
+  <semantic-search-button
+    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%)"
+  ></semantic-search-button>
+</form>
+```
+
+The page still needs one `<semantic-search>` element (or the JS Config). The button only asks it to open.
+
+| Attribute | Default | Description |
+|---|---|---|
+| `label` | localized "AI search" | Button text, for example `KI-Suche` |
+| `variant` | `icon-text` | `icon-text` shows the icon and the text. `icon` shows only the icon; the text then becomes the button's `aria-label` |
+
+The colour comes from `--appin-primary`:
+
+```css
+semantic-search-button {
+  --appin-primary: #7c3aed;  /* button background; text and icon are white */
+}
+```
+
+When the modal closes, the keyboard focus returns to the button.
+
 ## JavaScript API
 
-When using JS Config, methods are exposed on `window.AppInSearch`:
+### Open from your code
+
+Dispatch `appin-search:open` on `window` to open the search modal. This works with both installation options:
+
+```javascript
+window.dispatchEvent(new CustomEvent('appin-search:open'));
+```
+
+Dispatch it after `search.js` has loaded. An event sent earlier is lost, and nothing opens.
+
+### `window.AppInSearch`
+
+When using JS Config, methods are also exposed on `window.AppInSearch`:
 
 ```javascript
 window.AppInSearch.open();   // open the search modal
 window.AppInSearch.close();  // close the search modal
-```
-
-Useful for a custom trigger button:
-
-```html
-<button onclick="window.AppInSearch.open()">Search</button>
 ```
 
 ## Language
