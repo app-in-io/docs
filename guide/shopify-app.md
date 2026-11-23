@@ -13,13 +13,9 @@ The app is the fastest path for Shopify stores. For a custom integration, use th
 
 ## Install
 
-1. Install **AppInIo Search** in your Shopify admin.
+1. Install **AppInIo Search** from the [Shopify App Store](https://apps.shopify.com/appinio-search).
 2. Shopify asks you to approve the app's permissions. Approve them.
 3. The app opens its status page inside the Shopify admin.
-
-::: tip
-The app is in **beta** and is coming to the Shopify App Store.
-:::
 
 When you install the app, AppIn creates an account, a site and a public search key for your store. You do not type a key, a code or a store address. The status page then shows **Connected**, and the first product sync starts.
 
