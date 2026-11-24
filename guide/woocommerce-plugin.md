@@ -8,7 +8,7 @@ The plugin is the fastest path for WooCommerce stores. If you're building a cust
 
 ## Requirements
 
-- WordPress 6.0+
+- WordPress 6.3+ (plugin 1.1.0 and later; 1.0.0 runs on 6.0+)
 - WooCommerce 8.0+
 - PHP 8.1+
 - An AppIn account — you can create one **from inside the plugin** (below).
@@ -63,6 +63,33 @@ The widget runs inside its own isolated boundary (Shadow DOM), so it won't clash
 The plugin sets the widget up for you. To customize colors, language, result count, or other options, see the full [Search Widget](/guide/search-widget) reference.
 :::
 
+## Add an AI search button
+
+Since plugin version 1.1.0 you can place an **AI search** button anywhere in your store. A click on it opens the AI search.
+
+- **Block** — in the editor, add the **AI search button** block (in the Widgets category). In the block settings you can set its own label and choose **Icon and text** or **Icon only**.
+- **Shortcode** — put `[appinio_search_button]` in a page, a post or a widget. Optional attributes: `label="Find a product"` and `variant="icon"` (icon only).
+
+The button appears only when a public key is set.
+
+Set the look of every button under **WooCommerce → Appinio Search → AI Search Button**:
+
+- **Button Label** — the text on the button. Leave it empty to show "AI search" in the visitor's language. With Polylang or WPML, translate your own text under their string translations. A label set on a single block or shortcode wins over this setting.
+- **Button Colour** and **Button Text Colour** — the background, and the colour of the text and the icon. Leave them empty for the default blue and white.
+- **Button Icon** — a small image from your media library that replaces the sparkle icon. It is shown at 16 × 16 pixels.
+
+For other styles, your theme's CSS can target `semantic-search-button::part(button)`.
+
+::: tip Open the search from your own code
+Your theme can open the AI search with an event:
+
+```js
+window.dispatchEvent(new CustomEvent('appin-search:open'));
+```
+
+See [Search Widget](/guide/search-widget) for the button's full reference.
+:::
+
 ## AI results page
 
 The **Search Results Page** setting (on by default) powers your WordPress search results page (`/?s=`) with AI:
@@ -83,6 +110,10 @@ This means shoppers who reach the results page via the sidebar form, a bookmark,
 | Search Input Selector | Optional CSS selector to point the widget at a custom search field. | Search Widget |
 | Search Results Page | Power the WordPress `/?s=` results page with AI (on by default). | Search Widget |
 | Widget Appearance | Widget colour theme: Light, Dark, or Auto. | Search Widget |
+| Button Label | Text on every AI search button; empty shows "AI search" in the visitor's language. Translatable with Polylang or WPML. | AI Search Button |
+| Button Colour | Button background; empty is the default blue. | AI Search Button |
+| Button Text Colour | Text and icon colour; empty is white. | AI Search Button |
+| Button Icon | An image from the media library that replaces the sparkle icon. | AI Search Button |
 
 ## Support
 
