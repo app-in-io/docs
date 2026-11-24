@@ -144,13 +144,38 @@ The page still needs one `<semantic-search>` element (or the JS Config). The but
 | `label` | localized "AI search" | Button text, for example `KI-Suche` |
 | `variant` | `icon-text` | `icon-text` shows the icon and the text. `icon` shows only the icon; the text then becomes the button's `aria-label` |
 
-The colour comes from `--appin-primary`:
+Two CSS variables set the colours:
 
 ```css
 semantic-search-button {
-  --appin-primary: #7c3aed;  /* button background; text and icon are white */
+  --appin-primary: #7c3aed;     /* button background */
+  --appin-on-primary: #ffffff;  /* text and the default icon; white by default */
 }
 ```
+
+### Custom icon
+
+To replace the sparkle with your own icon, put an element with `slot="icon"` inside the button. The button shows it at 16×16 px. Without such an element, the sparkle stays.
+
+An image file:
+
+```html
+<semantic-search-button>
+  <img slot="icon" src="/images/ai-icon.svg" alt="" width="16" height="16">
+</semantic-search-button>
+```
+
+An inline SVG with `fill="currentColor"` takes the text colour, so it follows `--appin-on-primary`:
+
+```html
+<semantic-search-button>
+  <svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+</semantic-search-button>
+```
+
+Keep `alt=""` on the image (or `aria-hidden="true"` on the SVG): the icon is decoration, and the button text or `aria-label` names the button. The `icon` slot and `--appin-on-primary` need widget v0.14.0 or later. An older widget ignores the slotted icon and shows the sparkle.
 
 When the modal closes, the keyboard focus returns to the button.
 
